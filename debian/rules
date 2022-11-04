@@ -27,10 +27,10 @@ override_dh_gencontrol:
 
 override_dh_auto_build:
 	make all
-ifeq ($(DEB_TARGET_ARCH),amd64)
+#ifeq ($(DEB_TARGET_ARCH),amd64)
 	# Only build XDP on amd64 systems
 	make vyxdp
-endif
+#endif
 
 override_dh_auto_install:
 	dh_auto_install
@@ -124,9 +124,9 @@ override_dh_auto_install:
 	mkdir -p $(DIR)/usr/lib/udev
 	cp src/helpers/vyos_net_name $(DIR)/usr/lib/udev
 
-ifeq ($(DEB_TARGET_ARCH),amd64)
+#ifeq ($(DEB_TARGET_ARCH),amd64)
 	# We only install XDP on amd64 systems
 	mkdir -p $(DIR)/$(VYOS_DATA_DIR)/xdp
 	cp -r src/xdp/xdp_prog_kern.o $(DIR)/$(VYOS_DATA_DIR)/xdp
 	find src/xdp -perm /a+x -exec cp {} $(DIR)/$(VYOS_SBIN_DIR) \;
-endif
+#endif
