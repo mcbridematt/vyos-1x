@@ -17,6 +17,7 @@ from pathlib import Path
 from re import MULTILINE, compile as re_compile
 from typing import Union
 from uuid import uuid5, NAMESPACE_URL, UUID
+import platform
 
 from vyos.template import render
 from vyos.utils.process import cmd
@@ -57,16 +58,18 @@ def install(drive_path: str, boot_dir: str, efi_dir: str, id: str = 'VyOS') -> N
         boot_dir (str): a path to '/boot' directory
         efi_dir (str): a path to '/boot/efi' directory
     """
-    commands: list[str] = [
-        f'grub-install --no-floppy --target=i386-pc --boot-directory={boot_dir} \
-            {drive_path} --force',
-        f'grub-install --no-floppy --recheck --target=x86_64-efi \
+
+    efi_installation_arch = "x86-64"
+    if (platform.machine() == "aarch64"):
+        efi_installation_arch = "arm64"
+    else:
+        cmd(f'grub-install --no-floppy --target=i386-pc --boot-directory={boot_dir} \
+            {drive_path} --force')
+
+    cmd(f'grub-install --no-floppy --recheck --target={efi_installation_arch}-efi \
             --force-extra-removable --boot-directory={boot_dir} \
             --efi-directory={efi_dir} --bootloader-id="{id}" \
-            --no-uefi-secure-boot'
-    ]
-    for command in commands:
-        cmd(command)
+            --no-uefi-secure-boot')
 
 
 def gen_version_uuid(version_name: str) -> str:
