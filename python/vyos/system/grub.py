@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
+import platform
+
 from pathlib import Path
 from re import MULTILINE, compile as re_compile
 from typing import Union
@@ -49,7 +51,7 @@ REGEX_GRUB_MODULES: str = r'^insmod (?P<module_name>.+)$'
 REGEX_KERNEL_CMDLINE: str = r'^BOOT_IMAGE=/(?P<boot_type>boot|live)/((?P<image_version>.+)/)?vmlinuz.*$'
 
 
-def install(drive_path: str, boot_dir: str, efi_dir: str, id: str = 'VyOS') -> None:
+def install(drive_path: str, boot_dir: str, efi_dir: str, id: str = "VyOS") -> None:
     """Install GRUB for both BIOS and EFI modes (hybrid boot)
 
     Args:
@@ -57,16 +59,22 @@ def install(drive_path: str, boot_dir: str, efi_dir: str, id: str = 'VyOS') -> N
         boot_dir (str): a path to '/boot' directory
         efi_dir (str): a path to '/boot/efi' directory
     """
-    commands: list[str] = [
-        f'grub-install --no-floppy --target=i386-pc --boot-directory={boot_dir} \
-            {drive_path} --force',
-        f'grub-install --no-floppy --recheck --target=x86_64-efi \
+
+    efi_installation_arch = "x86-64"
+    if platform.machine() == "aarch64":
+        efi_installation_arch = "arm64"
+    else:
+        cmd(
+            f'grub-install --no-floppy --target=i386-pc \
+            --boot-directory={boot_dir}  {drive_path} --force'
+        )
+
+    cmd(
+        f'grub-install --no-floppy --recheck --target={efi_installation_arch}-efi \
             --force-extra-removable --boot-directory={boot_dir} \
             --efi-directory={efi_dir} --bootloader-id="{id}" \
             --no-uefi-secure-boot'
-    ]
-    for command in commands:
-        cmd(command)
+    )
 
 
 def gen_version_uuid(version_name: str) -> str:
