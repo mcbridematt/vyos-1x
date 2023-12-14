@@ -21,11 +21,11 @@ menuentry "{{ version_name }}" --id {{ version_uuid }} {
         set boot_opts="${boot_opts} toram"
     fi
     if [ "${bootmode}" == "pw_reset" ]; then
-        set boot_opts="${boot_opts} ${console_opts} init=/usr/libexec/vyos/system/standalone_root_pw_reset"
+        set boot_opts="${boot_opts} arm-smmu.disable_bypass=0 init=/usr/libexec/vyos/system/standalone_root_pw_reset"
     elif [ "${bootmode}" == "recovery" ]; then
-        set boot_opts="${boot_opts} ${console_opts} init=/usr/bin/busybox init"
+        set boot_opts="${boot_opts} arm-smmu.disable_bypass=0 init=/usr/bin/busybox init"
     else
-        set boot_opts="${boot_opts} ${console_opts}"
+        set boot_opts="${boot_opts} arm-smmu.disable_bypass=0"
     fi
     linux "/boot/{{ version_name }}/vmlinuz" ${boot_opts}
     initrd "/boot/{{ version_name }}/initrd.img"
