@@ -925,12 +925,32 @@ def add_image(image_path: str, vrf: str = None, username: str = '',
 
         # copy system image and kernel files
         print('Copying system image files')
+        vmlinuz_full_path = None
+        initrd_full_path = None
         for file in Path(f'{DIR_ISO_MOUNT}/live').iterdir():
-            if file.is_file() and (file.match('initrd*') or
-                                   file.match('vmlinuz*')):
+            if not file.is_file():
+                continue
+            is_vmlinuz = file.match('vmlinuz*')
+            is_initrd = file.match('initrd*')
+            if is_initrd or is_vmlinuz:
                 copy(file, f'{root_dir}/boot/{image_name}/')
+                if (is_vmlinuz and not file.is_symlink()):
+                    vmlinuz_full_path = file
+                if (is_initrd and not file.is_symlink()):
+                    initrd_full_path = file
         copy(f'{DIR_ISO_MOUNT}/live/filesystem.squashfs',
              f'{root_dir}/boot/{image_name}/{image_name}.squashfs')
+
+        # Handle vmlinuz and initrd not being symlinked
+        if (not Path(f'{root_dir}/boot/{image_name}/vmlinuz').is_file() and
+            vmlinuz_full_path != None):
+            copy(vmlinuz_full_path.absolute(),
+                 f'{root_dir}/boot/{image_name}/vmlinuz')
+
+        if (not Path(f'{root_dir}/boot/{image_name}/initrd.img').is_file() and
+            initrd_full_path != None):
+            copy(initrd_full_path.absolute(),
+                 f'{root_dir}/boot/{image_name}/initrd.img')
 
         # unmount an ISO and cleanup
         cleanup([str(iso_path)])
